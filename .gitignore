@@ -1,0 +1,16 @@
+# Dados (baixar do Kaggle, ver data/README.md)
+data/*.csv
+*.csv
+
+# Material interno / de entrega
+.context-bridge/
+docs/superpowers/
+Requisitos.md
+prints_exercicio/
+
+# Ambiente
+.ipynb_checkpoints/
+__pycache__/
+.venv/
+.DS_Store
+._*

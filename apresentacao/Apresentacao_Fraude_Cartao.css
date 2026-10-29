@@ -1,0 +1,471 @@
+/* Cores compartilhadas pela apresentação. */
+:root {
+  --paper:#f4f1e9;
+  --ink:#13243a;
+  --muted:#667487;
+  --accent:#d84c47;
+  --line:#d6d2ca;
+  --blue:#355d7b
+}
+/* Base da página e margens: o conteúdo cabe dentro das caixas. */
+* {
+  box-sizing:border-box
+}
+html,body {
+  margin:0;
+  background:#dfe3e6;
+  color:var(--ink);
+  font-family:Inter,"Aptos","Helvetica Neue",Arial,sans-serif
+}
+body {
+  min-height:100vh
+}
+/* Área que centraliza todos os slides na tela. */
+.deck {
+  width:min(100vw,1600px);
+  margin:0 auto;
+  padding:24px 24px 88px
+}
+/* Cada slide ocupa a tela; só o slide ativo aparece. */
+.slide {
+  position:relative;
+  display:none;
+  min-height:min(84vh,900px);
+  aspect-ratio:16/9;
+  background:var(--paper);
+  padding:5.1% 6.1%;
+  overflow:hidden;
+  box-shadow:0 15px 55px #14263a20
+}
+.slide.active {
+  display:flex;
+  flex-direction:column
+}
+.slide-head {
+  display:flex;
+  justify-content:space-between;
+  color:var(--muted);
+  font-size:clamp(10px,.85vw,14px);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  border-bottom:1px solid var(--line);
+  padding-bottom:14px
+}
+.slide-body {
+  display:flex;
+  flex:1;
+  flex-direction:column;
+  justify-content:center;
+  min-height:0
+}
+.slide h2 {
+  font-size:clamp(26px,3vw,48px);
+  line-height:1.04;
+  letter-spacing:-.035em;
+  margin:3.5% 0 2.5%;
+  max-width:1000px
+}
+.slide p {
+  font-size:clamp(15px,1.45vw,23px);
+  line-height:1.45;
+  margin:.45em 0
+}
+.slide .lead {
+  font-size:clamp(24px,2.5vw,38px);
+  line-height:1.2;
+  max-width:900px
+}
+.slide h3 {
+  font-size:clamp(14px,1.1vw,18px);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin:1.2em 0 .25em;
+  color:var(--blue)
+}
+.slide code {
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  background:#e8e4db;
+  padding:.1em .35em;
+  border-radius:3px
+}
+.footnote {
+  font-size:clamp(12px,1vw,16px)!important;
+  color:var(--muted);
+  border-top:1px solid var(--line);
+  padding-top:12px;
+  margin-top:20px!important
+}
+.takeaway {
+  color:var(--accent);
+  font-weight:650
+}
+/* Grades e figuras dos slides com gráficos e explicações. */
+.chart-layout {
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(240px,.85fr);
+  gap:5%;
+  align-items:center;
+  min-height:0
+}
+.chart-layout figure {
+  margin:0;
+  min-width:0
+}
+.chart-layout img {
+  display:block;
+  width:100%;
+  max-height:54vh;
+  object-fit:contain;
+  mix-blend-mode:multiply
+}
+.chart-layout figcaption {
+  color:var(--muted);
+  font-size:clamp(11px,.9vw,14px);
+  line-height:1.35;
+  margin-top:8px
+}
+.explain p {
+  font-size:clamp(14px,1.22vw,19px)
+}
+.two-col {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8%;
+  max-width:1100px
+}
+.two-col p {
+  max-width:540px
+}
+.method-layout {
+  display:grid;
+  grid-template-columns:1fr 1.2fr;
+  gap:8%;
+  align-items:center
+}
+.method-layout p {
+  max-width:560px
+}
+.big-stat {
+  font-size:clamp(34px,5vw,74px)!important;
+  font-weight:700;
+  letter-spacing:-.06em
+}
+.big-stat small {
+  font-size:.34em;
+  letter-spacing:0;
+  color:var(--muted)
+}
+.result-line {
+  display:flex;
+  gap:8%;
+  margin:5% 0 3%;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:3% 0
+}
+.result-line div {
+  display:flex;
+  flex-direction:column;
+  gap:8px
+}
+.result-line strong {
+  font-size:clamp(38px,5vw,72px);
+  letter-spacing:-.06em;
+  color:var(--accent)
+}
+.result-line span {
+  font-size:clamp(13px,1.05vw,17px);
+  color:var(--muted)
+}
+.caveat {
+  max-width:900px;
+  color:var(--muted)
+}
+/* Aparência especial da capa e seus números em destaque. */
+.cover {
+  background:var(--ink);
+  color:var(--paper);
+  padding:4.3% 6.1%
+}
+.cover-meta,.cover-bottom {
+  display:flex;
+  justify-content:space-between;
+  color:#aab5bf;
+  font-size:clamp(11px,.9vw,15px);
+  letter-spacing:.06em
+}
+.cover-meta {
+  border-bottom:1px solid #ffffff2c;
+  padding-bottom:14px
+}
+.cover-main {
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:5%;
+  align-items:center;
+  flex:1
+}
+.eyebrow {
+  color:var(--accent);
+  text-transform:uppercase;
+  letter-spacing:.15em;
+  font-size:clamp(12px,1vw,16px)!important;
+  font-weight:700
+}
+.cover h1 {
+  font-size:clamp(42px,6.4vw,96px);
+  letter-spacing:-.065em;
+  line-height:.95;
+  margin:.25em 0 .3em;
+  max-width:800px
+}
+.dek {
+  max-width:620px;
+  color:#d0d7dc;
+  font-size:clamp(18px,1.75vw,27px)!important
+}
+.source-line {
+  font-size:clamp(12px,1vw,16px)!important;
+  color:#aab5bf;
+  margin-top:30px!important
+}
+.cover-stat {
+  border-left:1px solid #ffffff2b;
+  padding-left:8%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center
+}
+.cover-stat strong {
+  font-size:clamp(68px,10vw,140px);
+  letter-spacing:-.07em;
+  color:var(--accent)
+}
+.cover-stat span {
+  color:#e0e5e8;
+  font-size:clamp(16px,1.7vw,25px);
+  text-align:center
+}
+.cover-stat small {
+  color:#aab5bf;
+  font-size:14px;
+  margin-top:12px
+}
+.cover-bottom {
+  border-top:1px solid #ffffff2b;
+  padding-top:12px
+}
+/* Destaque visual de limites e números importantes. */
+.threshold {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10%;
+  border-block:1px solid var(--line);
+  padding:4% 0;
+  margin:2% 0 3%
+}
+.threshold div {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start
+}
+.threshold strong {
+  font-size:clamp(46px,6vw,82px);
+  letter-spacing:-.06em;
+  color:var(--accent)
+}
+.threshold p {
+  color:var(--muted)
+}
+.closing {
+  max-width:1050px
+}
+.closing ol {
+  padding-left:1.3em
+}
+.closing li {
+  font-size:clamp(17px,1.55vw,24px);
+  line-height:1.35;
+  padding:.35em 0 .35em .25em
+}
+.closing li::marker {
+  color:var(--accent);
+  font-weight:700
+}
+/* Barra fixa inferior: botões, progresso e contador. */
+.controls {
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#f4f1e9f0;
+  border-top:1px solid #d6d2ca;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:12px max(24px,calc((100vw - 1550px)/2));
+  z-index:5
+}
+.controls button {
+  border:0;
+  background:none;
+  color:var(--ink);
+  font-size:20px;
+  padding:5px 10px;
+  cursor:pointer
+}
+.controls button:hover,.controls button:focus-visible {
+  color:var(--accent);
+  outline:2px solid var(--accent);
+  outline-offset:2px
+}
+.progress {
+  height:3px;
+  background:#d6d2ca;
+  flex:1
+}
+.progress span {
+  display:block;
+  background:var(--accent);
+  height:100%;
+  width:0;
+  transition:width .25s ease
+}
+.counter {
+  font-variant-numeric:tabular-nums;
+  color:var(--muted);
+  font-size:13px;
+  min-width:55px;
+  text-align:right
+}
+.hint {
+  font-size:12px;
+  color:var(--muted)
+}
+/* Em telas estreitas, empilha colunas e adapta a leitura ao celular. */
+@media(max-width:850px) {
+  .deck {
+    padding:0 0 64px
+  }
+  .slide {
+    aspect-ratio:auto;
+    min-height:calc(100svh - 62px);
+    padding:8% 7%;
+    box-shadow:none
+  }
+  .slide h2 {
+    margin:8% 0 5%
+  }
+  .chart-layout,.method-layout,.cover-main {
+    grid-template-columns:1fr
+  }
+  .chart-layout {
+    gap:3%
+  }
+  .chart-layout img {
+    max-height:35vh
+  }
+  .explain {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    column-gap:6%
+  }
+  .explain .takeaway {
+    grid-column:1/-1
+  }
+  .cover-stat {
+    display:none
+  }
+  .cover h1 {
+    font-size:clamp(44px,11vw,74px)
+  }
+  .cover-main {
+    align-content:center
+  }
+  .cover-bottom {
+    margin-top:10%
+  }
+  .hint {
+    display:none
+  }
+  .result-line {
+    gap:5%;
+    flex-wrap:wrap
+  }
+  .result-line strong {
+    font-size:clamp(34px,8vw,56px)
+  }
+}
+/* Ao imprimir, mostra todos os slides como páginas separadas. */
+@media print {
+  @page {
+    size:13.333in 7.5in;
+    margin:0
+  }
+  html,body {
+    width:13.333in;
+    background:#fff
+  }
+  .deck {
+    width:13.333in;
+    margin:0;
+    padding:0
+  }
+  .slide,.slide.active {
+    display:flex!important;
+    flex-direction:column;
+    width:13.333in;
+    height:7.5in;
+    min-height:0;
+    aspect-ratio:auto;
+    box-shadow:none;
+    page-break-after:always;
+    break-after:page;
+    padding:.45in .72in;
+    print-color-adjust:exact;
+    -webkit-print-color-adjust:exact
+  }
+  .slide:last-child {
+    page-break-after:auto;
+    break-after:auto
+  }
+  .slide-head {
+    font-size:9pt;
+    padding-bottom:8px
+  }
+  .slide h2 {
+    font-size:26pt;
+    margin:3% 0 2%
+  }
+  .slide p {
+    font-size:13pt
+  }
+  .chart-layout img {
+    max-height:4.4in
+  }
+  .chart-layout figcaption {
+    font-size:9pt
+  }
+  .explain p {
+    font-size:12pt
+  }
+  .controls {
+    display:none
+  }
+  .cover h1 {
+    font-size:56pt
+  }
+  .cover-stat strong {
+    font-size:56pt
+  }
+  .footnote {
+    font-size:9pt!important
+  }
+  .result-line strong {
+    font-size:45pt
+  }
+  .closing li {
+    font-size:16pt
+  }
+}
