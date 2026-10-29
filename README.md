@@ -80,7 +80,47 @@ O modelo deve ser usado como **triagem para revisão humana**, não como bloquei
 
 - A janela é de só cerca de 48 h, e o teste tem apenas 52 fraudes, então as métricas têm alta variância.
 - As features V1–V28 são anonimizadas, o que limita a interpretação de negócio.
-- Não houve busca de hiperparâmetros. A queda de AP entre validação (0,87) e teste (0,77) sugere possível mudança de padrão ao longo do tempo.
+- O modelo original não teve busca de hiperparâmetros (uma busca curta foi feita depois, na [comparação de modelos](#comparação-de-modelos)). A queda de AP entre validação (0,87) e teste (0,77) sugere possível mudança de padrão ao longo do tempo.
+
+## Comparação de modelos
+
+Extensão do projeto: **Regressão Logística, Random Forest, XGBoost e LightGBM** comparados com **o mesmo protocolo** do modelo original. A comparação usa a mesma partição temporal 70/15/15, as mesmas 30 colunas de entrada, nenhuma reamostragem e pesos de classe. O `StandardScaler` é ajustado só no treino. Notebook: [`Comparacao_Modelos.ipynb`](Comparacao_Modelos.ipynb).
+
+- **Busca de hiperparâmetros:** busca aleatória curta, de 8 a 12 combinações por modelo, com validação cruzada estratificada de 3 dobras **somente no treino**, otimizando Average Precision. O desbalanceamento é tratado com `class_weight` (LR e RF) e `scale_pos_weight` (XGBoost e LightGBM; a busca testou 1, √518 e 518).
+- **Seleção:** maior **PR-AUC (Average Precision) na validação**, como no projeto original.
+- **Limiar:** escolhido na validação pela **mesma regra F2** do projeto original, para manter os números comparáveis. Depois disso, houve **uma única avaliação no teste** (42.721 transações, 52 fraudes).
+
+**Reprodução:** a configuração original do Random Forest foi reproduzida no teste com AP 0,773, ROC-AUC 0,957, recall 0,750 e 39 de 52 fraudes detectadas. A única diferença foi 1 alerta falso (17 contra 18) e um limiar de 0,149 contra 0,143, efeito provável de versões diferentes de biblioteca.
+
+### Resultados no teste temporal (limiar F2 escolhido na validação)
+
+| Modelo | AP validação | **PR-AUC teste** | ROC-AUC teste | Limiar | Precisão | Recall | F1 | VP / FP / FN | Alertas por 1.000 |
+|---|---:|---:|---:|---:|---:|---:|---:|---|---:|
+| **Random Forest** ✅ | **0,873** | **0,775** | 0,954 | 0,165 | 0,629 | 0,750 | 0,684 | 39 / 23 / 13 | 1,45 |
+| XGBoost | 0,852 | 0,768 | 0,977 | 0,077 | 0,661 | 0,750 | 0,703 | 39 / 20 / 13 | 1,38 |
+| LightGBM | 0,863 | 0,753 | **0,979** | 0,001 | 0,667 | 0,731 | 0,697 | 38 / 19 / 14 | 1,33 |
+| Regressão Logística | 0,839 | 0,707 | 0,977 | 0,9999 | **0,905** | 0,731 | **0,809** | 38 / 4 / 14 | 0,98 |
+| *Random Forest (config. original)* | *0,870* | *0,773* | *0,957* | *0,149* | *0,696* | *0,750* | *0,722* | *39 / 17 / 13* | *1,31* |
+
+Na tabela, VP são as fraudes detectadas, FP os alertas falsos e FN as fraudes perdidas. Os alertas por 1.000 transações são (VP + FP) / 42.721 × 1.000. A tabela completa, que inclui a política alternativa de limiar, está em [`reports/metricas_comparacao.csv`](reports/metricas_comparacao.csv).
+
+![Curvas precisão-recall dos quatro modelos](reports/pr_curves.png)
+
+### Análise
+
+**Quem vence.** O **Random Forest continua sendo o melhor modelo**. Ele tem a maior PR-AUC na validação (0,873), que é o critério de seleção, e também no teste (0,775). Mesmo assim, a vantagem é pequena. Num bootstrap estratificado do teste, com 1.000 reamostragens, os intervalos de 95% da AP se sobrepõem bastante: RF 0,67–0,88 e XGBoost 0,66–0,88. O XGBoost supera o RF em cerca de 21% das reamostragens, e o LightGBM em cerca de 16% (veja [`reports/bootstrap_ap_teste.csv`](reports/bootstrap_ap_teste.csv)). Por isso, a leitura honesta é **empate técnico entre RF e XGBoost, com o RF ligeiramente à frente**. A Regressão Logística fica claramente atrás em PR-AUC.
+
+**Por que PR-AUC.** Com 0,12% de fraudes no teste, a ROC-AUC é inflada pela enorme quantidade de negativos fáceis. Os modelos de boosting têm ROC-AUC maior (0,977–0,979 contra 0,954), porque ordenam melhor as fraudes "difíceis" do fim da lista. Só que essa região tem precisão abaixo de 10% e nunca entraria numa fila de revisão. A PR-AUC mede o que importa para a operação: quão "limpo" é o topo da lista de alertas.
+
+**Precisão × recall no limiar escolhido.** Todos os modelos param num **teto de recall de cerca de 0,75**: há cerca de 13 fraudes no teste que nenhum modelo coloca no topo da lista. Passar desse ponto derruba a precisão para menos de 0,5 nas curvas. No limiar F2, o RF captura 39 das 52 fraudes com 23 alertas falsos (precisão 0,63). Testei uma política alternativa, a de **maior precisão com recall ≥ 0,80 na validação**. Com ela, o mesmo RF captura as mesmas 39 fraudes com só 13 alertas falsos (precisão 0,75, F1 0,75, 1,22 alertas por 1.000). Os modelos ficam no mesmo patamar no teste, o que mostra que **o limiar pesa tanto quanto a escolha do modelo**. A Regressão Logística tem o melhor F1 no limiar F2 (38 fraudes com 4 alertas falsos). Porém, esse limiar fica em 0,9999, na região em que as probabilidades do modelo estão saturadas, então é um ponto frágil. Com a política alternativa, ela cai para precisão 0,66.
+
+**Leitura de negócio (fila de revisão).** Com o Random Forest, a fila recebe cerca de **1,2 a 1,5 alertas por 1.000 transações**. Numa base como esta (cerca de 285 mil transações em 48 h), isso dá algo como 170 a 210 casos por dia para revisar. Cerca de 2 de cada 3 alertas são fraudes reais, e cerca de 3 em cada 4 fraudes são capturadas. O modelo continua indicado para **triagem humana**, não para bloqueio automático. O limiar deve ser ajustado de acordo com a capacidade da equipe e o custo real de uma fraude perdida em relação a um alerta falso.
+
+**Limitações.**
+- **Uma única partição temporal** (cerca de 48 h) e só **52 fraudes no teste**: uma fraude a mais ou a menos muda o recall em cerca de 0,02. As diferenças entre RF, XGBoost e LightGBM estão dentro do ruído.
+- **Variáveis V1–V28 anonimizadas por PCA:** não há como explicar os alertas em termos de negócio nem criar features de domínio, como histórico do cliente ou do estabelecimento.
+- **Coluna `Time`:** foi mantida como entrada para manter a comparabilidade com o modelo original. Na partição temporal, porém, o teste tem valores de `Time` fora do intervalo do treino. Árvores não extrapolam, e o efeito na regressão logística é linear e arbitrário. Uma versão de produção deveria trocar `Time` por algo como hora do dia ou removê-lo.
+- A busca de hiperparâmetros foi propositalmente curta e usou validação cruzada estratificada (embaralhada) dentro do treino, não temporal. A queda de AP da validação (0,84–0,87) para o teste (0,71–0,78) aparece em todos os modelos e sugere mudança de padrão ao longo do tempo.
 
 ## Como executar
 
@@ -91,14 +131,18 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 # baixe creditcard.csv do Kaggle para data/ (veja data/README.md)
 jupyter notebook Analise_Fraude_Cartao.ipynb
+# comparação dos 4 modelos (cerca de 7 min em 8 núcleos)
+jupyter notebook Comparacao_Modelos.ipynb
 ```
 
-As figuras são salvas em `imagens/`.
+As figuras do notebook principal são salvas em `imagens/`. As métricas e o gráfico da comparação ficam em `reports/`.
 
 ## Estrutura
 
 ```
 ├── Analise_Fraude_Cartao.ipynb   # notebook completo (EDA → modelo → avaliação)
+├── Comparacao_Modelos.ipynb      # LR × RF × XGBoost × LightGBM com o mesmo protocolo
+├── reports/                      # metricas_comparacao.csv, bootstrap_ap_teste.csv e gráficos da comparação
 ├── imagens/                      # 9 figuras usadas no README e na apresentação
 ├── apresentacao/                 # apresentação em HTML (15 slides): abra apresentacao/index.html
 ├── data/README.md                # como obter o CSV
@@ -108,7 +152,7 @@ As figuras são salvas em `imagens/`.
 
 ## Stack
 
-Python 3.13 · pandas · NumPy · scikit-learn · matplotlib · seaborn · Jupyter
+Python 3.13 · pandas · NumPy · scikit-learn · XGBoost · LightGBM · matplotlib · seaborn · Jupyter
 
 ## Autor
 

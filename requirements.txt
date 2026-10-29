@@ -1,6 +1,9 @@
 pandas
 numpy
 scikit-learn
+scipy
+xgboost
+lightgbm
 matplotlib
 seaborn
 jupyter
